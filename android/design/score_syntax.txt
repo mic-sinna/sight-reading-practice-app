@@ -1,0 +1,14 @@
+Treble Clef: C0
+Base Clef: C1
+Alto Clef: C2
+Tenor Clef: C3
+
+Pitch C4, C#4, ..., Bb4, B4, C5: P04, .., P94, PA4, PB4, P05
+Beat length: semibrieve, minim, crotchet, quaver, ... : 0, 1, 2, 3, 4, 5, 6
+Note: N<pitch>|<beat length>|<other modifiers...>N
+Tie: J<tie index>
+Rest: R<beat length>
+
+Time signature (e.g.) 2/2, 3/4, 6/8: T21, T32, T63 (i.e. u/d -> Tu(log2(d)))
+
+Key Signature C, ..., B: K0, ..., K9, KA, KB 
