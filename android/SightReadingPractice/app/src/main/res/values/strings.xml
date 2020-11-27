@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">SightReadingPractice</string>
+    <string name="app_name">Sight Reading Practice</string>
+
+    <!-- activity_hom.xml -->
+    <string name="home_title">Sight Reading Practice</string>
+    <string name="home_practice_btn">Start Practice</string>
+    <string name="home_settings_btn">Practice Settings</string>
 </resources>

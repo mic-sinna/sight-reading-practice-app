@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/home_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:backgroundTint="@color/ui_2"
+    tools:context=".appcomponent.HomeActivity">
+
+    <Button
+        android:id="@+id/btnPractice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="@color/ui_1"
+        android:text="@string/home_practice_btn"
+        android:textColor="@color/ui_2"
+        app:layout_constraintBottom_toBottomOf="@id/vertCenterGuideline"
+        app:layout_constraintEnd_toEndOf="@id/horzCenterGuideline"
+        app:layout_constraintStart_toStartOf="@id/horzCenterGuideline"
+        app:layout_constraintTop_toTopOf="@id/vertCenterGuideline" />
+
+    <Button
+        android:id="@+id/btnSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="@color/ui_1"
+        android:text="@string/home_settings_btn"
+        android:textColor="@color/ui_2"
+        app:layout_constraintBottom_toBottomOf="@id/vertLowerGuideline"
+        app:layout_constraintEnd_toEndOf="@id/horzCenterGuideline"
+        app:layout_constraintStart_toStartOf="@id/horzCenterGuideline"
+        app:layout_constraintTop_toTopOf="@id/vertLowerGuideline" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/home_title"
+        android:textColor="@color/ui_1"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="@id/vertUpperGuideline"
+        app:layout_constraintEnd_toEndOf="@id/horzCenterGuideline"
+        app:layout_constraintStart_toStartOf="@id/horzCenterGuideline"
+        app:layout_constraintTop_toTopOf="@id/vertUpperGuideline" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/horzCenterGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/vertUpperGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.3" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/vertCenterGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/vertLowerGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.65" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
