@@ -5,4 +5,10 @@
     <string name="home_title">Sight Reading Practice</string>
     <string name="home_practice_btn">Start Practice</string>
     <string name="home_settings_btn">Practice Settings</string>
+    <string name="title_activity_practice">PracticeActivity</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
 </resources>

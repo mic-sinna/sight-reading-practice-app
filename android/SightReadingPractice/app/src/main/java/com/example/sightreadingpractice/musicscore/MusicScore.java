@@ -8,8 +8,4 @@ public class MusicScore {
 
     }
 
-    public void drawOnCanvas(Canvas canvas) {
-
-    }
-
 }
