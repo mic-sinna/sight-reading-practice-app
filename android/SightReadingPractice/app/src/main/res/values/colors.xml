@@ -8,6 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="ui_1">#FF6200EE</color>
-    <color name="ui_2">#FFDDAAFF</color>
+    <color name="ui_1">#FFDDDDDD</color>
+    <color name="ui_2">#FF222222</color>
 </resources>

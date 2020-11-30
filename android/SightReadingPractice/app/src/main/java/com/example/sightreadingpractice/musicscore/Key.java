@@ -17,7 +17,7 @@ public enum Key {
 
     private int number;
 
-    private Key(int number) {
+    Key(int number) {
         this.number = number;
     }
 
