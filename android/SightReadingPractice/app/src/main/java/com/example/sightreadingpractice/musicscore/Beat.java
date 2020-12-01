@@ -2,14 +2,12 @@ package com.example.sightreadingpractice.musicscore;
 
 public enum Beat {
 
-    BRIEVE(0),
-    SEMIBRIEVE(1),
-    MINIM(2),
-    CROTCHET(3),
-    QUAVER(4),
-    SEMIQUAVER(5),
-    DEMISEMIQUAVER(6),
-    HEMIDEMISEMIQUAVER(7);
+    DOUBLE_NOTE(0),
+    WHOLE_NOTE(1),
+    HALF_NOTE(2),
+    QUARTER_NOTE(3),
+    EIGHTH_NOTE(5),
+    SIXTEENTH_NOTE(6);
 
     private int rank;
 
@@ -17,4 +15,7 @@ public enum Beat {
         this.rank = rank;
     }
 
+    public int getRank() {
+        return rank;
+    }
 }

@@ -32,7 +32,9 @@ public class Pitch {
         this.key = key;
     }
 
-    public int toStavePos(Key staveKey, Clef clef) {
+    public int toStavePos(ScoreBrush scoreBrush) {
+        Key staveKey = scoreBrush.getKey();
+        Clef clef = scoreBrush.getClef();
         int keyNum = key.asNumber(), staveKeyNum = staveKey.asNumber();
         for(int i = 0; i < 12; i++) {
             if ((i * 7) % 12 == staveKeyNum) {
