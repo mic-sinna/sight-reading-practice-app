@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -26,6 +27,7 @@ public class MusicScoreView extends View {
     private Canvas canvas;
     private Rect destBuffer;
     private Paint canvasBrush;
+    private Path pathBuffer;
     private Pitch pitchBuffer;
     private ScoreBrush scoreBrush;
     private Matrix mtrxFlipBitmap;
@@ -66,6 +68,7 @@ public class MusicScoreView extends View {
 
         destBuffer = new Rect();
         canvasBrush = new Paint();
+        pathBuffer = new Path();
         pitchBuffer = new Pitch();
         scoreBrush = new ScoreBrush();
         mtrxFlipBitmap = new Matrix();
@@ -97,20 +100,16 @@ public class MusicScoreView extends View {
                 centerY + staveLineSpacing * 2 + staveCenterOffset);
         scoreBrush.setKey(Key.C);
         scoreBrush.setClef(Clef.TREBLE);
-        pitchBuffer.set(3, Key.E);
-        drawSingleNote(centerX - 350f, Beat.WHOLE_NOTE);
-        pitchBuffer.set(3, Key.F);
-        drawSingleNote(centerX - 250f, Beat.SIXTEENTH_NOTE);
-        pitchBuffer.set(3, Key.G);
-        drawSingleNote(centerX - 150f, Beat.QUARTER_NOTE);
-        pitchBuffer.set(3, Key.A);
-        drawSingleNote(centerX - 50f, Beat.DOUBLE_NOTE);
-        pitchBuffer.set(3, Key.B);
-        drawSingleNote(centerX + 50f, Beat.THIRTYSECOND_NOTE);
-        pitchBuffer.set(4, Key.C);
-        drawSingleNote(centerX + 150f, Beat.EIGHTH_NOTE);
-        pitchBuffer.set(4, Key.D);
-        drawSingleNote(centerX + 250f, Beat.HALF_NOTE);
+    }
+
+    private void drawStave(Canvas canvas, float left, float top, float right, float bottom) {
+        canvasBrush.setColor(Color.BLACK);
+        canvasBrush.setStrokeWidth(staveLineThickness);
+        canvas.drawLine(left, top, right, top, canvasBrush);
+        canvas.drawLine(left, top * 0.75f + bottom * 0.25f, right, top * 0.75f + bottom * 0.25f, canvasBrush);
+        canvas.drawLine(left, (top + bottom) * 0.5f, right, (top + bottom) * 0.5f, canvasBrush);
+        canvas.drawLine(left, top * 0.25f + bottom * 0.75f, right, top * 0.25f + bottom * 0.75f, canvasBrush);
+        canvas.drawLine(left, bottom, right, bottom, canvasBrush);
     }
 
     private void drawWholeNoteHead(float centerX) {
@@ -225,7 +224,8 @@ public class MusicScoreView extends View {
         canvas.drawLine(noteHeadPosX + width / 2f + doubleNoteLinePadding, noteCenterY - staveLineSpacing / 2, noteHeadPosX + width / 2f + doubleNoteLinePadding, noteCenterY + staveLineSpacing / 2, canvasBrush);
     }
 
-    private void drawSingleNote(float noteHeadPosX, Beat beat) {
+    private void drawSingleNote(float noteHeadPosX, int octave, Key key, Beat beat) {
+        pitchBuffer.set(octave, key);
         switch (beat) {
         case DOUBLE_NOTE:
             drawWholeNoteHead(noteHeadPosX);
@@ -260,14 +260,45 @@ public class MusicScoreView extends View {
         }
     }
 
-    private void drawStave(Canvas canvas, float left, float top, float right, float bottom) {
+    private void drawBeamSegment(float leftX, float leftY, float rightX, float rightY, float thickness, boolean increaseThicknessFromTop) {
+        float thicknessDisplacement = (increaseThicknessFromTop ? 1 : -1) * thickness;
+        pathBuffer.moveTo(leftX, leftY);
+        pathBuffer.lineTo(rightX, rightY);
+        pathBuffer.lineTo(rightX, rightY + thicknessDisplacement);
+        pathBuffer.lineTo(leftX, leftY + thicknessDisplacement);
+        pathBuffer.lineTo(leftX, leftY);
         canvasBrush.setColor(Color.BLACK);
-        canvasBrush.setStrokeWidth(staveLineThickness);
-        canvas.drawLine(left, top, right, top, canvasBrush);
-        canvas.drawLine(left, top * 0.75f + bottom * 0.25f, right, top * 0.75f + bottom * 0.25f, canvasBrush);
-        canvas.drawLine(left, (top + bottom) * 0.5f, right, (top + bottom) * 0.5f, canvasBrush);
-        canvas.drawLine(left, top * 0.25f + bottom * 0.75f, right, top * 0.25f + bottom * 0.75f, canvasBrush);
-        canvas.drawLine(left, bottom, right, bottom, canvasBrush);
+        canvasBrush.setStyle(Paint.Style.FILL);
+        canvas.drawPath(pathBuffer, canvasBrush);
+    }
+
+    private void drawBeamedNotes(float[] noteHeadsPosX, Beat[] beats, int[] octaves, Key[] keys, int[] beamLevels, float[] beamLerps, float minStemHeightToLineSpacingRatio) {
+        int nNotes = noteHeadsPosX.length;
+        int nBeams = beamLevels.length;
+        int maxAbsOffsetFromCenter = 0, stavePos = 0, beamDirection = -1;
+        int staveNoteIntervalSum = 0, prevStavePos = 0;
+        for (int i = 0; i < nNotes; i++) {
+            pitchBuffer.set(octaves[i], keys[i]);
+            stavePos = pitchBuffer.toStavePos(scoreBrush);
+            if (Math.abs(stavePos) > maxAbsOffsetFromCenter) {
+                maxAbsOffsetFromCenter = Math.abs(stavePos);
+                beamDirection = stavePos < 0 ? -1 : 1;
+            }
+            staveNoteIntervalSum = i == 0 ? 0 : staveNoteIntervalSum + stavePos - prevStavePos;
+            prevStavePos = stavePos;
+        }
+        float staveNoteIntervalAvg = (float)staveNoteIntervalSum / (nNotes - 1);
+        int closestNoteToBeamIdx = -1;
+        double closestNoteToBeamStavePos = Double.POSITIVE_INFINITY;
+        for (int i = 0; i < nNotes; i++) {
+            pitchBuffer.set(octaves[i], keys[i]);
+            stavePos = pitchBuffer.toStavePos(scoreBrush) * beamDirection;
+            if (stavePos < closestNoteToBeamStavePos) {
+                closestNoteToBeamStavePos = stavePos;
+                closestNoteToBeamIdx = i;
+            }
+        }
+        closestNoteToBeamStavePos *= beamDirection;
     }
 
 }
