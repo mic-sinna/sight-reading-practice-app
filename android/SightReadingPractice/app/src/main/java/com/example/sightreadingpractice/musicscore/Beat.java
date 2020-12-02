@@ -7,7 +7,8 @@ public enum Beat {
     HALF_NOTE(2),
     QUARTER_NOTE(3),
     EIGHTH_NOTE(5),
-    SIXTEENTH_NOTE(6);
+    SIXTEENTH_NOTE(6),
+    THIRTYSECOND_NOTE(7);
 
     private int rank;
 

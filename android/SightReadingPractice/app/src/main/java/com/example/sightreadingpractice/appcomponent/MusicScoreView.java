@@ -38,8 +38,9 @@ public class MusicScoreView extends View {
     private float noteHollowOffsetY;
     private float noteSemibreveOffsetY;
 
-    private Bitmap bmTailQuaver;
-    private Bitmap bmTailSubQuaver;
+    private Bitmap bmTailEighthNote;
+    private Bitmap bmTailSixteenthNote;
+    private Bitmap bmTailThirtySecondNote;
 
     private float tailHeightToWidthRatio;
     private float tailHeightToStemHeightRatio;
@@ -58,7 +59,9 @@ public class MusicScoreView extends View {
         bmNoteSolid = BitmapFactory.decodeResource(getResources(), R.drawable.note_solid);
         bmNoteHollow = BitmapFactory.decodeResource(getResources(), R.drawable.note_hollow);
         bmNoteSemibreve = BitmapFactory.decodeResource(getResources(), R.drawable.note_semibreve);
-        bmTailQuaver = BitmapFactory.decodeResource(getResources(), R.drawable.tail_quaver);
+        bmTailEighthNote = BitmapFactory.decodeResource(getResources(), R.drawable.tail_quaver);
+        bmTailSixteenthNote = BitmapFactory.decodeResource(getResources(), R.drawable.tail_semiquaver);
+        bmTailThirtySecondNote = BitmapFactory.decodeResource(getResources(), R.drawable.tail_demisemiquaver);
 
         destBuffer = new Rect();
         canvasBrush = new Paint();
@@ -93,22 +96,23 @@ public class MusicScoreView extends View {
         scoreBrush.setKey(Key.C);
         scoreBrush.setClef(Clef.TREBLE);
         pitchBuffer.set(3, Key.B);
-        drawSingleNote(canvas, Beat.WHOLE_NOTE, centerX - 200f, pitchBuffer, scoreBrush);
+        drawSingleNote(canvas, Beat.DOUBLE_NOTE, centerX - 200f, pitchBuffer, scoreBrush);
         pitchBuffer.set(3, Key.G);
-        drawSingleNote(canvas, Beat.HALF_NOTE, centerX - 100f, pitchBuffer, scoreBrush);
+        drawSingleNote(canvas, Beat.THIRTYSECOND_NOTE, centerX - 100f, pitchBuffer, scoreBrush);
         pitchBuffer.set(3, Key.A);
-        drawSingleNote(canvas, Beat.EIGHTH_NOTE, centerX, pitchBuffer, scoreBrush);
+        drawSingleNote(canvas, Beat.SIXTEENTH_NOTE, centerX, pitchBuffer, scoreBrush);
         pitchBuffer.set(3, Key.B);
-        drawSingleNote(canvas, Beat.QUARTER_NOTE, centerX + 100f, pitchBuffer, scoreBrush);
+        drawSingleNote(canvas, Beat.THIRTYSECOND_NOTE, centerX + 100f, pitchBuffer, scoreBrush);
         pitchBuffer.set(4, Key.C);
         drawSingleNote(canvas, Beat.EIGHTH_NOTE, centerX + 200f, pitchBuffer, scoreBrush);
     }
 
-    private void drawNote(Canvas canvas, Bitmap noteHead, boolean hasStem, Bitmap noteTail, float noteHeadPosX, float stemHeightToLineSpacingRatio, Pitch pitch, ScoreBrush scoreBrush) {
+    private void drawNote(Canvas canvas, Bitmap noteHead, boolean hasStem, boolean isDoubleNote, Bitmap noteTail, float tailHeightToStemHeightRatio, float tailHeightToWidthRatio, float noteHeadPosX, float stemHeightToLineSpacingRatio, Pitch pitch, ScoreBrush scoreBrush) {
         canvasBrush.setColor(Color.BLACK);
         canvasBrush.setStrokeWidth(staveLineThickness);
         // Draw note head.
-        float noteHeadPosY = canvas.getHeight()/2 + noteHeadOffsetY * (noteHead == bmNoteSemibreve ? 2.75f : 1f) - staveLineSpacing / 2 * pitch.toStavePos(scoreBrush);
+        float noteCenterY = canvas.getHeight() / 2 - staveLineSpacing / 2 * pitch.toStavePos(scoreBrush);
+        float noteHeadPosY = noteCenterY + noteHeadOffsetY * (noteHead == bmNoteSemibreve ? 2.75f : 1f);
         float width = noteSolidWidth * (noteHead == bmNoteSemibreve ? 1.5f : 1f), height = staveLineSpacing * (noteHead == bmNoteSemibreve ? 0.05f : 2f / 3);
         destBuffer.set(
                 (int)(noteHeadPosX - width/2f),
@@ -137,9 +141,15 @@ public class MusicScoreView extends View {
                         (int) (lineX + stemHeight * tailHeightToStemHeightRatio / tailHeightToWidthRatio),
                         (int) (stopY + (stavePos < 0 ? stemHeight * tailHeightToStemHeightRatio : 0))
                 );
-                Log.d("DEBUG", "Drawing tail.");
                 canvas.drawBitmap(tail, null, destBuffer, null);
             }
+        }
+        if (isDoubleNote) {
+            float doubleNoteLinePadding = 10f;
+            canvas.drawLine(noteHeadPosX - (width / 2f + doubleNoteLinePadding), noteCenterY - staveLineSpacing / 2, noteHeadPosX - (width / 2f + doubleNoteLinePadding), noteCenterY + staveLineSpacing / 2, canvasBrush);
+            canvas.drawLine(noteHeadPosX - width / 2f, noteCenterY - staveLineSpacing / 2, noteHeadPosX - width / 2f, noteCenterY + staveLineSpacing / 2, canvasBrush);
+            canvas.drawLine(noteHeadPosX + width / 2f, noteCenterY - staveLineSpacing / 2, noteHeadPosX + width / 2f, noteCenterY + staveLineSpacing / 2, canvasBrush);
+            canvas.drawLine(noteHeadPosX + width / 2f + doubleNoteLinePadding, noteCenterY - staveLineSpacing / 2, noteHeadPosX + width / 2f + doubleNoteLinePadding, noteCenterY + staveLineSpacing / 2, canvasBrush);
         }
     }
 
@@ -155,14 +165,24 @@ public class MusicScoreView extends View {
 
     private void drawSingleNote(Canvas canvas, Beat beat, float noteHeadPosX, Pitch pitch, ScoreBrush scoreBrush) {
         Bitmap noteHead =
-                beat == Beat.WHOLE_NOTE ? bmNoteSemibreve
+                beat.getRank() < Beat.HALF_NOTE.getRank() ? bmNoteSemibreve
                 : beat == Beat.HALF_NOTE ? bmNoteHollow
                 : bmNoteSolid;
         Bitmap noteTail =
-                beat == Beat.EIGHTH_NOTE ? bmTailQuaver
-                : beat == Beat.SIXTEENTH_NOTE ? bmTailSubQuaver
+                beat == Beat.EIGHTH_NOTE ? bmTailEighthNote
+                : beat == Beat.SIXTEENTH_NOTE ? bmTailSixteenthNote
+                : beat == Beat.THIRTYSECOND_NOTE ? bmTailThirtySecondNote
                 : null;
-        drawNote(canvas, noteHead, beat.getRank() > Beat.WHOLE_NOTE.getRank(), noteTail,
+        float tailHeightToStemHeightRatio =
+                beat == Beat.THIRTYSECOND_NOTE ? 0.9f
+                : beat == Beat.SIXTEENTH_NOTE ? 0.8f
+                : 0.8f;
+        float tailHeightToWidthRatio =
+                beat == Beat.THIRTYSECOND_NOTE ? 2.5f
+                : beat == Beat.SIXTEENTH_NOTE ? 3f
+                : 3f;
+        drawNote(canvas, noteHead, beat.getRank() > Beat.WHOLE_NOTE.getRank(), beat == beat.DOUBLE_NOTE,
+                noteTail, tailHeightToStemHeightRatio, tailHeightToWidthRatio,
                 noteHeadPosX, 3.5f, pitch, scoreBrush);
     }
 
