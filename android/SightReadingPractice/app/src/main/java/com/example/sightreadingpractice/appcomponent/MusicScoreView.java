@@ -100,6 +100,12 @@ public class MusicScoreView extends View {
                 centerY + staveLineSpacing * 2 + staveCenterOffset);
         scoreBrush.setKey(Key.C);
         scoreBrush.setClef(Clef.TREBLE);
+        drawBeamedNotes(new float[]{centerX-200f, centerX-100f, centerX+100f, centerX+200f},
+                new int[]{3, 4, 4, 4},
+                new Key[]{Key.B, Key.C, Key.D, Key.E},
+                new int[]{0, 1},
+                new float[]{0f, 1f, 0.5f, 1f},
+                15f, 2.5f);
     }
 
     private void drawStave(Canvas canvas, float left, float top, float right, float bottom) {
@@ -260,7 +266,7 @@ public class MusicScoreView extends View {
         }
     }
 
-    private void drawBeamSegment(float leftX, float leftY, float rightX, float rightY, float thickness, boolean increaseThicknessFromTop) {
+    private void drawBeam(float leftX, float leftY, float rightX, float rightY, float thickness, boolean increaseThicknessFromTop) {
         float thicknessDisplacement = (increaseThicknessFromTop ? 1 : -1) * thickness;
         pathBuffer.moveTo(leftX, leftY);
         pathBuffer.lineTo(rightX, rightY);
@@ -272,7 +278,8 @@ public class MusicScoreView extends View {
         canvas.drawPath(pathBuffer, canvasBrush);
     }
 
-    private void drawBeamedNotes(float[] noteHeadsPosX, Beat[] beats, int[] octaves, Key[] keys, int[] beamLevels, float[] beamLerps, float minStemHeightToLineSpacingRatio) {
+    private void drawBeamedNotes(float[] noteHeadsPosX, int[] octaves, Key[] keys, int[] beamLevels, float[] beamLerps, float beamThickness, float minStemHeightToLineSpacingRatio) {
+        int centerY = canvas.getHeight() / 2;
         int nNotes = noteHeadsPosX.length;
         int nBeams = beamLevels.length;
         int maxAbsOffsetFromCenter = 0, stavePos = 0, beamDirection = -1;
@@ -299,6 +306,40 @@ public class MusicScoreView extends View {
             }
         }
         closestNoteToBeamStavePos *= beamDirection;
+        int maxBeamLevel = -1;
+        for (int beamLevel : beamLevels) {
+            maxBeamLevel = Math.max(beamLevel, maxBeamLevel);
+        }
+        float beamLeftX = 0f, beamLeftY = 0f, beamRightX = 0f, beamRightY = 0f;
+        for (int i = 0; i < nNotes; i++) {
+            pitchBuffer.set(octaves[i], keys[i]);
+            stavePos = pitchBuffer.toStavePos(scoreBrush);
+            drawSolidNoteHead(noteHeadsPosX[i]);
+            float startY = centerY - staveLineSpacing / 2 * stavePos;
+            float cStopYInStaveIntervals = (float)closestNoteToBeamStavePos + (minStemHeightToLineSpacingRatio + (maxBeamLevel * 1.5f + 1) * beamThickness / staveLineSpacing) * 2f;
+            float stopYRelativeToStaveLineSpacing = cStopYInStaveIntervals + staveNoteIntervalAvg * (stavePos - (float)closestNoteToBeamStavePos);
+            float stopY = centerY - staveLineSpacing / 2f * stopYRelativeToStaveLineSpacing;
+            startY = startY + beamDirection * staveLineSpacing / 6f;
+            float lineX = noteHeadsPosX[i] + -beamDirection * noteSolidWidth / 2f;
+            canvas.drawLine(lineX, startY, lineX, stopY, canvasBrush);
+            if (i == 0) {
+                beamLeftX = lineX;
+                beamLeftY = stopY;
+            } else if (i == nNotes - 1) {
+                beamRightX = lineX;
+                beamRightY = stopY;
+            }
+        }
+        float beamOffsetY, beamGradient = (beamRightY - beamLeftY) / (beamRightX - beamLeftX);
+        float x0, y0, x1, y1;
+        for (int i = 0; i < nBeams; i++) {
+            beamOffsetY = beamThickness * 1.5f * beamLevels[i];
+            x0 = (1 - beamLerps[i * 2]) * beamLeftX + beamLerps[i * 2] * beamRightX;
+            y0 = beamLeftY + beamOffsetY + beamGradient * (x0 - beamLeftX);
+            x1 = (1 - beamLerps[i * 2 + 1]) * beamLeftX + beamLerps[i * 2 + 1] * beamRightX;
+            y1 = beamRightY + beamOffsetY + beamGradient * (x1 - beamRightX);
+            drawBeam(x0, y0, x1, y1, beamThickness, beamDirection == -1);
+        }
     }
 
 }
